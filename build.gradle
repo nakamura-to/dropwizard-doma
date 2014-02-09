@@ -1,0 +1,109 @@
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'signing'
+apply plugin: 'maven'
+ 
+version = '0.0.0-SNAPSHOT'
+sourceCompatibility = jdkVersion
+targetCompatibility = jdkVersion
+group = 'org.seasar.doma'
+
+compileJava {
+    options.encoding = 'UTF-8'
+}
+ 
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+javadoc {
+    options.encoding = 'UTF-8'
+    options.charSet = 'UTF-8'
+    options.docEncoding = 'UTF-8'
+    exclude '**/internal/**'
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'dropwizard-doma', 'Implementation-Version': version
+    }
+}
+ 
+test {
+    scanForTestClasses = false
+    includes = ['**/*Test.class']
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.10'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+ 
+dependencies {
+    compile 'io.dropwizard:dropwizard-db:0.7.0-rc1'
+    compile 'org.seasar.doma:doma:2.0-beta-2-SNAPSHOT'
+}
+
+task sourcesJar (type : Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar (type : Jar, dependsOn : javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives jar
+    archives sourcesJar
+    archives javadocJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        beforeDeployment {MavenDeployment deployment ->
+            signing.signPom(deployment)
+        }
+        repository (url : sonatypeUrl) {
+            authentication (
+                    userName : sonatypeUsername,
+                    password : sonatypePassword)
+        }
+        pom.project {
+            name project.name
+            packaging 'jar'
+            description 'Dropwizard Doma Support'
+            url projectUrl
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/license/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+            scm {
+                url githubUrl
+                connection "scm:git:${githubUrl}"
+                developerConnection "scm:git:${githubUrl}"
+            }
+            developers {
+                developer {
+                    id 'nakamura-to'
+                    name 'Toshihiro Nakamura'
+                    email 'toshihiro.nakamura@gmail.com'
+                }
+            }
+        }
+    }
+}
+
+apply from:'eclipse.gradle'
