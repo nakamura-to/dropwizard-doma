@@ -18,7 +18,7 @@ package org.seasar.doma.dropwizard;
 import java.util.Objects;
 
 import org.seasar.doma.UnitOfWork;
-import org.seasar.doma.jdbc.tx.LocalTransaction;
+import org.seasar.doma.jdbc.tx.LocalTransactionManager;
 
 import com.sun.jersey.api.core.HttpContext;
 import com.sun.jersey.spi.dispatch.RequestDispatcher;
@@ -29,30 +29,36 @@ import com.sun.jersey.spi.dispatch.RequestDispatcher;
  */
 public class UnitOfWorkRequestDispatcher implements RequestDispatcher {
 
-    protected final LocalTransaction transaction;
+    protected final LocalTransactionManager transactionManager;
 
-    protected RequestDispatcher dispatcher;
+    protected final RequestDispatcher dispatcher;
 
-    protected UnitOfWork unitOfWork;
+    protected final UnitOfWork unitOfWork;
 
-    public UnitOfWorkRequestDispatcher(LocalTransaction transaction,
+    public UnitOfWorkRequestDispatcher(
+            LocalTransactionManager transactionManager,
             RequestDispatcher dispatcher, UnitOfWork unitOfWork) {
-        Objects.requireNonNull(transaction, "transaction");
+        Objects.requireNonNull(transactionManager, "transactionManager");
         Objects.requireNonNull(dispatcher, "dispatcher");
         Objects.requireNonNull(unitOfWork, "unitOfWork");
-        this.transaction = transaction;
+        this.transactionManager = transactionManager;
         this.dispatcher = dispatcher;
         this.unitOfWork = unitOfWork;
     }
 
     @Override
     public void dispatch(Object resource, HttpContext context) {
-        transaction.begin(unitOfWork.isolationLevel());
-        try {
-            dispatcher.dispatch(resource, context);
-            transaction.commit();
-        } finally {
-            transaction.rollback();
+        Runnable block = () -> dispatcher.dispatch(resource, context);
+        switch (unitOfWork.attribute()) {
+        case REQURED:
+            transactionManager.required(block);
+            break;
+        case REQURES_NEW:
+            transactionManager.requiresNew(block);
+            break;
+        case NOT_SUPPORTED:
+            transactionManager.notSupported(block);
+            break;
         }
     }
 

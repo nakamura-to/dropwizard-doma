@@ -18,7 +18,7 @@ package org.seasar.doma.dropwizard;
 import java.util.Objects;
 
 import org.seasar.doma.UnitOfWork;
-import org.seasar.doma.jdbc.tx.LocalTransaction;
+import org.seasar.doma.jdbc.tx.LocalTransactionManager;
 
 import com.sun.jersey.api.model.AbstractResourceMethod;
 import com.sun.jersey.spi.container.ResourceMethodDispatchProvider;
@@ -33,15 +33,15 @@ public class UnitOfWorkResourceMethodDispatchProvider implements
 
     protected final ResourceMethodDispatchProvider provider;
 
-    protected final LocalTransaction transaction;
+    protected final LocalTransactionManager transactionManager;
 
     public UnitOfWorkResourceMethodDispatchProvider(
             ResourceMethodDispatchProvider provider,
-            LocalTransaction transaction) {
+            LocalTransactionManager transactionManager) {
         Objects.requireNonNull(provider, "provider");
-        Objects.requireNonNull(transaction, "transaction");
+        Objects.requireNonNull(transactionManager, "transactionManager");
         this.provider = provider;
-        this.transaction = transaction;
+        this.transactionManager = transactionManager;
     }
 
     @Override
@@ -57,7 +57,8 @@ public class UnitOfWorkResourceMethodDispatchProvider implements
                 return dispatcher;
             }
         }
-        return new UnitOfWorkRequestDispatcher(transaction, dispatcher, unitOfWork);
+        return new UnitOfWorkRequestDispatcher(transactionManager, dispatcher,
+                unitOfWork);
     }
 
 }

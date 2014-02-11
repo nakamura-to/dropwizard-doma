@@ -23,6 +23,7 @@ import javax.sql.DataSource;
 import org.seasar.doma.jdbc.Config;
 import org.seasar.doma.jdbc.dialect.Dialect;
 import org.seasar.doma.jdbc.tx.LocalTransaction;
+import org.seasar.doma.jdbc.tx.LocalTransactionManager;
 import org.seasar.doma.jdbc.tx.LocalTransactionalDataSource;
 
 /**
@@ -42,7 +43,6 @@ public class DomaConfig implements Config {
         Objects.requireNonNull(dataSourceName, "dataSourceName");
         Objects.requireNonNull(dataSource, "dataSource");
         Objects.requireNonNull(supplier, "supplier");
-
         this.dataSourceName = dataSourceName;
         this.dataSource = new LocalTransactionalDataSource(dataSource);
         this.dialect = supplier.get();
@@ -64,7 +64,9 @@ public class DomaConfig implements Config {
         return dataSourceName;
     }
 
-    public LocalTransaction getLocalTransaction() {
-        return dataSource.getLocalTransaction(getJdbcLogger());
+    public LocalTransactionManager getLocalTransactionManager() {
+        LocalTransaction transaction = dataSource
+                .getLocalTransaction(getJdbcLogger());
+        return new LocalTransactionManager(transaction);
     }
 }

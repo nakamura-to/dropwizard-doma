@@ -19,7 +19,7 @@ import java.util.Objects;
 
 import javax.ws.rs.ext.Provider;
 
-import org.seasar.doma.jdbc.tx.LocalTransaction;
+import org.seasar.doma.jdbc.tx.LocalTransactionManager;
 
 import com.sun.jersey.spi.container.ResourceMethodDispatchAdapter;
 import com.sun.jersey.spi.container.ResourceMethodDispatchProvider;
@@ -32,17 +32,19 @@ import com.sun.jersey.spi.container.ResourceMethodDispatchProvider;
 public class UnitOfWorkResourceMethodDispatchAdapter implements
         ResourceMethodDispatchAdapter {
 
-    protected final LocalTransaction transaction;
+    protected final LocalTransactionManager transactionManager;
 
-    public UnitOfWorkResourceMethodDispatchAdapter(LocalTransaction transaction) {
-        Objects.requireNonNull(transaction, "transaction");
-        this.transaction = transaction;
+    public UnitOfWorkResourceMethodDispatchAdapter(
+            LocalTransactionManager transactionManager) {
+        Objects.requireNonNull(transactionManager, "transactionManager");
+        this.transactionManager = transactionManager;
     }
 
     @Override
     public ResourceMethodDispatchProvider adapt(
             ResourceMethodDispatchProvider provider) {
-        return new UnitOfWorkResourceMethodDispatchProvider(provider, transaction);
+        return new UnitOfWorkResourceMethodDispatchProvider(provider,
+                transactionManager);
     }
 
 }

@@ -15,6 +15,8 @@
  */
 package org.seasar.doma.dropwizard;
 
+import java.util.Objects;
+
 import org.seasar.doma.jdbc.Config;
 import org.seasar.doma.jdbc.builder.SelectBuilder;
 
@@ -31,6 +33,8 @@ public class DomaHealthCheck extends HealthCheck {
     protected final String validationQuery;
 
     public DomaHealthCheck(Config config, String validationQuery) {
+        Objects.requireNonNull(config, "config");
+        Objects.requireNonNull(validationQuery, "validationQuery");
         this.config = config;
         this.validationQuery = validationQuery;
     }
