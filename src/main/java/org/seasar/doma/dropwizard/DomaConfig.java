@@ -34,6 +34,8 @@ public class DomaConfig implements Config {
 
     protected final String dataSourceName;
 
+    protected final DataSource originalDataSource;
+
     protected final LocalTransactionalDataSource dataSource;
 
     protected final Dialect dialect;
@@ -44,6 +46,7 @@ public class DomaConfig implements Config {
         Objects.requireNonNull(dataSource, "dataSource");
         Objects.requireNonNull(supplier, "supplier");
         this.dataSourceName = dataSourceName;
+        this.originalDataSource = dataSource;
         this.dataSource = new LocalTransactionalDataSource(dataSource);
         this.dialect = supplier.get();
         Objects.requireNonNull(this.dialect, "dialect is not supplied");
@@ -62,6 +65,10 @@ public class DomaConfig implements Config {
     @Override
     public String getDataSourceName() {
         return dataSourceName;
+    }
+
+    public DataSource getOriginalDataSource() {
+        return originalDataSource;
     }
 
     public LocalTransactionManager getLocalTransactionManager() {

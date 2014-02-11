@@ -15,10 +15,11 @@
  */
 package org.seasar.doma.dropwizard;
 
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.Objects;
 
-import org.seasar.doma.jdbc.Config;
-import org.seasar.doma.jdbc.builder.SelectBuilder;
+import javax.sql.DataSource;
 
 import com.codahale.metrics.health.HealthCheck;
 
@@ -28,11 +29,11 @@ import com.codahale.metrics.health.HealthCheck;
  */
 public class DomaHealthCheck extends HealthCheck {
 
-    protected final Config config;
+    protected final DomaConfig config;
 
     protected final String validationQuery;
 
-    public DomaHealthCheck(Config config, String validationQuery) {
+    public DomaHealthCheck(DomaConfig config, String validationQuery) {
         Objects.requireNonNull(config, "config");
         Objects.requireNonNull(validationQuery, "validationQuery");
         this.config = config;
@@ -41,8 +42,12 @@ public class DomaHealthCheck extends HealthCheck {
 
     @Override
     protected Result check() throws Exception {
-        SelectBuilder builder = SelectBuilder.newInstance(config);
-        builder.sql(validationQuery).getScalarSingleResult(Object.class);
+        DataSource dataSource = config.getOriginalDataSource();
+        try (Connection con = dataSource.getConnection()) {
+            try (Statement statement = con.createStatement()) {
+                statement.execute(validationQuery);
+            }
+        }
         return Result.healthy();
     }
 
