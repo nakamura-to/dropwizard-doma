@@ -47,8 +47,8 @@ public abstract class DomaBundle<CONFIGURATION extends Configuration>
     }
 
     public DomaBundle(String dataSourceName) {
-        this.dataSourceName = Objects.requireNonNull(dataSourceName,
-                "dataSourceName");
+        Objects.requireNonNull(dataSourceName, "dataSourceName");
+        this.dataSourceName = dataSourceName;
     }
 
     @Override
