@@ -32,9 +32,9 @@ import com.codahale.metrics.health.HealthCheck;
  * @author nakamura-to
  *
  */
-public abstract class DomaBundle<DROPWIZARD_CONFIG extends Configuration>
-        implements ConfiguredBundle<DROPWIZARD_CONFIG>,
-        DatabaseConfiguration<DROPWIZARD_CONFIG> {
+public abstract class DomaBundle<CONFIGURATION extends Configuration>
+        implements ConfiguredBundle<CONFIGURATION>,
+        DatabaseConfiguration<CONFIGURATION> {
 
     protected static final String DEFAULT_DATASOURCE_NAME = "doma";
 
@@ -56,7 +56,7 @@ public abstract class DomaBundle<DROPWIZARD_CONFIG extends Configuration>
     }
 
     @Override
-    public void run(DROPWIZARD_CONFIG configuration, Environment environment)
+    public void run(CONFIGURATION configuration, Environment environment)
             throws ClassNotFoundException {
         DataSourceFactory dataSourceFactory = getDataSourceFactory(configuration);
         DataSource dataSource = dataSourceFactory.build(environment.metrics(),
@@ -69,22 +69,21 @@ public abstract class DomaBundle<DROPWIZARD_CONFIG extends Configuration>
         healthChecks(configuration, environment, dataSourceFactory, dataSource);
     }
 
-    protected DomaConfig createDomaConfig(DROPWIZARD_CONFIG configuration,
+    protected DomaConfig createDomaConfig(CONFIGURATION configuration,
             Environment environment, DataSourceFactory dataSourceFactory,
             DataSource dataSource) throws ClassNotFoundException {
         return new DomaConfig(dataSourceName, dataSource,
                 () -> DialectUtil.inferDialect(dataSourceFactory));
     }
 
-    protected void jersey(DROPWIZARD_CONFIG configuration,
-            Environment environment, DataSourceFactory dataSourceFactory,
-            DataSource dataSource) {
+    protected void jersey(CONFIGURATION configuration, Environment environment,
+            DataSourceFactory dataSourceFactory, DataSource dataSource) {
         UnitOfWorkResourceMethodDispatchAdapter methodDispatchAdapter = new UnitOfWorkResourceMethodDispatchAdapter(
                 domaConfig.getLocalTransactionManager());
         environment.jersey().register(methodDispatchAdapter);
     }
 
-    protected void healthChecks(DROPWIZARD_CONFIG configuration,
+    protected void healthChecks(CONFIGURATION configuration,
             Environment environment, DataSourceFactory dataSourceFactory,
             DataSource dataSource) {
         HealthCheck healthCheck = new DomaHealthCheck(domaConfig,
